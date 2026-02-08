@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Routine App - </title>
+    <style>
+        :root {
+            --bg-fallback: #1a1a2e;
+            --bg-image: url('https://images.unsplash.com/photo-1501691223387-dd050040307d?q=80&w=1600'); 
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --primary-color: #6c5ce7;
+            --font-size: 16px;
+        }
+
+        .light-theme {
+            --bg-fallback: #f0f2f5;
+            --text-color: #1a1a1a;
+            --card-bg: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-fallback) var(--bg-image) no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-color);
+            font-size: var(--font-size);
+            transition: 0.5s ease;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .container { max-width: 500px; margin: auto; padding: 15px; }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 15px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        input, textarea, select {
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px;
+            border: 1px solid rgba(125,125,125,0.3);
+            background: rgba(255,255,255,0.1); color: var(--text-color);
+            box-sizing: border-box; font-size: 14px;
+        }
+
+        .light-theme input, .light-theme textarea {
+            background: rgba(0,0,0,0.05); color: #000;
+        }
+
+        .btn {
+            background: var(--primary-color); color: white; border: none;
+            padding: 15px; border-radius: 12px; width: 100%;
+            font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s;
+        }
+
+        .avatar-container {
+            width: 100px; height: 100px; margin: 0 auto 10px;
+            border-radius: 50%; border: 3px solid var(--primary-color);
+            overflow: hidden; background: #ddd; cursor: pointer;
+        }
+
+        .avatar-container img { width: 100%; height: 100%; object-fit: cover; }
+
+        nav {
+            position: fixed; bottom: 0; width: 100%;
+            background: rgba(0,0,0,0.9); display: flex;
+            justify-content: space-around; padding: 12px 0;
+            backdrop-filter: blur(10px); z-index: 1000;
+        }
+
+        nav button { background: none; border: none; color: white; font-size: 11px; cursor: pointer; opacity: 0.6; }
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="dark-theme">
+
+    <audio id="bg-music" loop></audio>
+
+    <div id="login-page" class="page active">
+        <div class="container" style="text-align: center; margin-top: 80px;">
+            <div class="glass-card">
+                <h2>My Daily 📖</h2>
+                <input type="email" id="login-email" placeholder="Email kamu...">
+                <input type="password" id="login-pass" placeholder="Password...">
+                <button class="btn" onclick="handleLogin()">Masuk / Daftar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboard-page" class="page">
+        <div class="container">
+            <h2 style="margin-left: 10px;">🏠 Home</h2>
+            <div id="home-history"></div>
+        </div>
+    </div>
+
+    <div id="input-page" class="page">
+        <div class="container">
+            <h2 style="margin-left: 10px;">✍️ Tulis</h2>
+            <div class="glass-card">
+                <input type="date" id="input-date">
+                <input type="text" id="input-title" placeholder="Judul ceritamu...">
+                <textarea id="input-content" rows="8" placeholder="Apa yang terjadi hari ini?"></textarea>
+                <button class="btn" onclick="simpanDaily()" style="background:#2ecc71;">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-page" class="page">
+        <div class="container">
+            <h2 style="margin-left: 10px;">⚙️ Settings</h2>
+            <div class="glass-card">
+                <label>Ukuran Tulisan</label>
+                <input type="range" min="12" max="28" value="16" oninput="ubahFont(this.value)">
+
+                <label style="display:block; margin-top:20px;">Pilih Musik Santai</label>
+                <select onchange="putarLagu(this.value)">
+                    <option value="">🔇 Matikan Musik</option>
+                    <option value="Cup of Joe - Multo (Lyrics) - Harmony Words.mp3">🎵 Multo</option>
+                    <option value="Djo - End Of Beginning (Lyrics) - Dan Music.mp3">🎵 End Of Beginning</option>
+                    <option value="The 1975-About You.mp3">🎵 About You</option>
+                </select>
+
+                <label style="display:block; margin-top:20px;">Tema Background</label>
+                <div style="display: flex; gap: 10px; margin-top:10px;">
+                    <div onclick="ubahBg('chicago-downtown.jpg', 'light')" style="flex:1; height:60px; background:url('chicago-downtown.jpg'); background-size:cover; border-radius:10px; cursor:pointer; border:1px solid #fff;"></div>
+                    <div onclick="ubahBg('colorful-lakeside.jpg', 'dark')" style="flex:1; height:60px; background:url('colorful-lakeside.jpg'); background-size:cover; border-radius:10px; cursor:pointer; border:1px solid #fff;"></div>
+                    <div onclick="ubahBg('toronto-cityscape.jpeg', 'light')" style="flex:1; height:60px; background:url('toronto-cityscape.jpeg'); background-size:cover; border-radius:10px; cursor:pointer; border:1px solid #fff;"></div>
+                    <div onclick="ubahBg('toledo-spain.jpg', 'light')" style="flex:1; height:60px; background:url('toledo-spain.jpg'); background-size:cover; border-radius:10px; cursor:pointer; border:1px solid #fff;"></div>
+                </div>
+                <button class="btn" style="margin-top:25px; background:#444;" onclick="toggleDarkMode()">Ganti Mode Kontras</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="account-page" class="page">
+        <div class="container" style="text-align: center;">
+            <div class="glass-card">
+                <div class="avatar-container" onclick="document.getElementById('file-input').click()">
+                    <img id="profile-img" src="https://via.placeholder.com/100" alt="Profile">
+                </div>
+                <input type="file" id="file-input" style="display:none" accept="image/*" onchange="uploadFoto(this)">
+                <h3 id="display-email">User Email</h3>
+                <hr style="opacity: 0.1;">
+                <div style="background: white; padding: 10px; display: inline-block; border-radius: 10px;">
+                    <img id="qr-img" src="" alt="QR Code">
+                </div><br>
+                <button class="btn" style="background:#3498db; margin-top:10px; width:80%; font-size:12px;" onclick="downloadQR()">Simpan QR ke Galeri</button>
+            </div>
+            <div id="account-history"></div>
+            <button class="btn" onclick="logout()" style="background:#e74c3c; width: 90%; margin-bottom: 20px;">Logout</button>
+        </div>
+    </div>
+
+    <nav id="navbar" style="display: none;">
+        <button onclick="showPage('dashboard-page')">🏠<br>Home</button>
+        <button onclick="showPage('input-page')">➕<br>Tulis</button>
+        <button onclick="showPage('settings-page')">⚙️<br>Settings</button>
+        <button onclick="showPage('account-page')">👤<br>Akun</button>
+    </nav>
+
+    <script>
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            if(!email.includes('@')) return alert("Gunakan email valid!");
+            localStorage.setItem('user_email', email);
+            document.getElementById('display-email').innerText = email;
+            document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=User_${email}`;
+            showPage('dashboard-page');
+        }
+
+        function uploadFoto(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    document.getElementById('profile-img').src = e.target.result;
+                    localStorage.setItem('profile_pic', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function downloadQR() {
+            const imgUrl = document.getElementById('qr-img').src;
+            const res = await fetch(imgUrl);
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'MyDailyQR.png';
+            a.click();
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            if(pageId !== 'login-page') document.getElementById('navbar').style.display = 'flex';
+            if(pageId === 'account-page' || pageId === 'dashboard-page') tampilkanData();
+        }
+
+        function simpanDaily() {
+            const tgl = document.getElementById('input-date').value;
+            const jdl = document.getElementById('input-title').value;
+            const isi = document.getElementById('input-content').value;
+            if(!tgl || !jdl || !isi) return alert("Lengkapi data!");
+            let list = JSON.parse(localStorage.getItem('db_daily')) || [];
+            list.push({tgl, jdl, isi});
+            localStorage.setItem('db_daily', JSON.stringify(list));
+            alert("Berhasil!");
+            showPage('dashboard-page');
+        }
+
+        function tampilkanData() {
+            const list = JSON.parse(localStorage.getItem('db_daily')) || [];
+            let html = "";
+            list.slice().reverse().forEach(i => {
+                html += `<div class="glass-card"><strong>${i.tgl}</strong><h4>${i.jdl}</h4><p>${i.isi}</p></div>`;
+            });
+            document.getElementById('home-history').innerHTML = html || "<p style='text-align:center;'>Belum ada cerita.</p>";
+            document.getElementById('account-history').innerHTML = html;
+        }
+
+        // FUNGSI SETTINGS YANG HILANG SUDAH BALIK:
+        function ubahFont(s) {
+            document.documentElement.style.setProperty('--font-size', s + 'px');
+        }
+
+        function putarLagu(s) {
+            const a = document.getElementById('bg-music');
+            if(!s) { a.pause(); return; }
+            a.src = s; a.play();
+        }
+
+        function ubahBg(url, tipe) {
+            document.documentElement.style.setProperty('--bg-image', `url('${url}')`);
+            document.body.className = (tipe === 'light') ? 'light-theme' : 'dark-theme';
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('light-theme');
+            document.body.classList.toggle('dark-theme');
+        }
+
+        function logout() { if(confirm("Logout?")) location.reload(); }
+
+        window.onload = () => {
+            const pic = localStorage.getItem('profile_pic');
+            if(pic) document.getElementById('profile-img').src = pic;
+            tampilkanData();
+        };
+    </script>
+</body>
+</html>
